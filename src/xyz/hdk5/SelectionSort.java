@@ -41,7 +41,7 @@ public class SelectionSort extends JFrame {
         c.gridy = 0;
         add(numLabel, c);
 
-        //Количество элемент(прокрутка)
+        //Количество элементов (прокрутка)
         numOfElements = new JSpinner(
                 new SpinnerNumberModel(25, 2, Integer.MAX_VALUE, 1)
         );
@@ -78,7 +78,7 @@ public class SelectionSort extends JFrame {
         c.gridwidth = 2;
         add(manualInputField, c);
         c.gridwidth = 1;
-
+        //Кнопка ввода кастомного массива
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(this,
