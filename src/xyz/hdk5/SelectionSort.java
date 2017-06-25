@@ -13,7 +13,7 @@ public class SelectionSort extends JFrame {
     private int sortedIndex = -1;
     private int minIndex = -1;
     private int currIndex = -1;
-
+    //Элементы графического интерфейса
     private JLabel numLabel;
     private JPanel drawPanel;
     private JSpinner numOfElements;
@@ -30,13 +30,14 @@ public class SelectionSort extends JFrame {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(3, 3, 3, 3);
-
+        //Строка кол-ва элементов
         numLabel = new JLabel("Number of elements: ");
         c.gridx = 0;
         c.gridy = 0;
         add(numLabel, c);
 
 
+        //Количество элемент(прокрутка)
         numOfElements = new JSpinner(
                 new SpinnerNumberModel(25, 2, Integer.MAX_VALUE, 1)
         );
@@ -44,6 +45,7 @@ public class SelectionSort extends JFrame {
         c.gridy = 0;
         add(numOfElements, c);
 
+        //Кнопка рандомизации элементов(генерации)
         randButton = new JButton("Randomize");
         randButton.addActionListener(e -> {
             try {
@@ -58,7 +60,7 @@ public class SelectionSort extends JFrame {
         c.gridx = 2;
         c.gridy = 0;
         add(randButton, c);
-
+        //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
         stepButton.addActionListener(e -> {
             Collections.sort(array);
@@ -67,7 +69,7 @@ public class SelectionSort extends JFrame {
         c.gridx = 3;
         c.gridy = 0;
         add(stepButton, c);
-
+        //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
         animationButton.addActionListener(e -> {
 
@@ -92,7 +94,7 @@ public class SelectionSort extends JFrame {
     public static void main(String[] args) {
         SelectionSort mainWindow = new SelectionSort();
     }
-
+    //Функция перемешивания элементов
     private void randomize(int size) {
         array = new ArrayList<Integer>();
         for (int i = 1; i <= size; i++) {
@@ -100,7 +102,7 @@ public class SelectionSort extends JFrame {
         }
         Collections.shuffle(array);
     }
-
+    //Визуализация массива в виде столбчатой диаграммы
     private class DrawArrayPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
