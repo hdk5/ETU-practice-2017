@@ -9,12 +9,12 @@ import java.util.Collections;
 
 
 public class SelectionSort extends JFrame {
+    private Sorter sorter = null;
     private ArrayList<Integer> array = null;
     private int sortedIndex = -1;
     private int minIndex = -1;
     private int currIndex = -1;
     private boolean animation = false;
-
     //Элементы графического интерфейса
     private JLabel numLabel;
     private JPanel drawPanel;
@@ -60,6 +60,7 @@ public class SelectionSort extends JFrame {
                 e1.printStackTrace();
             }
             randomize((Integer) numOfElements.getValue());
+            sorter = new Sorter(array);
             drawPanel.repaint();
         });
         c.gridx = 4;
@@ -78,7 +79,7 @@ public class SelectionSort extends JFrame {
         c.gridwidth = 2;
         add(manualInputField, c);
         c.gridwidth = 1;
-        
+
         //Кнопка ввода кастомного массива
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
@@ -94,8 +95,10 @@ public class SelectionSort extends JFrame {
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
         stepButton.addActionListener(e -> {
-            Collections.sort(array);
-            drawPanel.repaint();
+//            Collections.sort(array);
+            if (sorter != null) {
+                sorter.step();
+            }
         });
         c.gridx = 0;
         c.gridy = 3;
@@ -190,6 +193,55 @@ public class SelectionSort extends JFrame {
                     }
                 }
             }
+        }
+    }
+
+    private class Sorter {
+
+        ArrayList<Integer> array;
+        private SortingThread t = null;
+        private Object stepLock = new Object();
+
+        public Sorter(ArrayList<Integer> arrayReference) {
+            array = arrayReference;
+        }
+
+        void step() {
+            if (t == null || t.getState() != Thread.State.RUNNABLE) {
+                t = new SortingThread();
+                t.start();
+            }
+            synchronized (stepLock) {
+                stepLock.notifyAll();
+            }
+        }
+        //Сортировка
+        private class SortingThread extends Thread {
+            @Override
+            public void run() {
+                synchronized (stepLock) {
+                    explanationLabel.setText("Sorting");
+                    for (int min = 0; min < array.size() - 1; min++) {
+                        int least = min;
+                        for (int j = min + 1; j < array.size(); j++) {
+                            if (array.get(j) < array.get(least)) {
+                                least = j;
+                            }
+                        }
+                        int tmp = array.get(min);
+                        array.set(min, array.get(least));
+                        array.set(least, tmp);
+                        try {
+                            drawPanel.repaint();
+                            stepLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    explanationLabel.setText("Sort completed");
+                }
+            }
+
         }
     }
 
