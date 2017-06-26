@@ -15,17 +15,17 @@ public class SelectionSort extends JFrame {
 
     private boolean animation = false;
     //Элементы графического интерфейса
-    private JLabel numLabel;
-    private JPanel drawPanel;
-    private JLabel manualInputLabel;
-    private JSpinner numOfElements;
-    private JButton randButton;
-    private JButton stepButton;
-    private JButton animationButton;
-    private JLabel explanationLabel;
-    private JButton manualCommitButton;
-    private JTextField manualInputField;
-    private JLabel colorLegend;
+    private final JLabel numLabel;
+    private final JPanel drawPanel;
+    private final JLabel manualInputLabel;
+    private final JSpinner numOfElements;
+    private final JButton randButton;
+    private final JButton stepButton;
+    private final JButton animationButton;
+    private final JLabel explanationLabel;
+    private final JButton manualCommitButton;
+    private final JTextField manualInputField;
+    private final JLabel colorLegend;
 
     public SelectionSort() {
         super("Selection Sort Algorithm Visualisation");
@@ -65,7 +65,7 @@ public class SelectionSort extends JFrame {
                 e1.printStackTrace();
             }
 
-            array = new ArrayList<Integer>();
+            array = new ArrayList<>();
             for (int i = 1; i <= (Integer) numOfElements.getValue(); i++) {
                 array.add(i);
             }
@@ -93,10 +93,10 @@ public class SelectionSort extends JFrame {
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
             try {
-                ArrayList<String> strList = new ArrayList<String>(
+                ArrayList<String> strList = new ArrayList<>(
                         Arrays.asList(manualInputField.getText().split(" "))
                 );
-                ArrayList<Integer> newArray = new ArrayList<Integer>();
+                ArrayList<Integer> newArray = new ArrayList<>();
                 for (String str : strList) {
                     Integer value = Integer.parseInt(str.trim());
                     if (value < 1) {
@@ -244,20 +244,16 @@ public class SelectionSort extends JFrame {
         }
 
         void animate() {
-            Thread t = new Thread() {
-                @Override
-                public void run() {
-                    while (animation) {
-                        try {
-                            Thread.sleep(250);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        step();
+            new Thread(() -> {
+                while (animation) {
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
+                    step();
                 }
-            };
-            t.start();
+            }).start();
         }
 
         void step() {
@@ -295,6 +291,5 @@ public class SelectionSort extends JFrame {
                     return;
             }
         }
-
     }
 }
