@@ -219,7 +219,7 @@ public class SelectionSort extends JFrame {
             }
         }
     }
-
+    //Сортировка
     private class Sorter {
 
         ArrayList<Integer> array;
@@ -250,7 +250,7 @@ public class SelectionSort extends JFrame {
             }
         }
 
-        //Сортировка
+    
         private class SortingThread extends Thread {
             @Override
             public void run() {
