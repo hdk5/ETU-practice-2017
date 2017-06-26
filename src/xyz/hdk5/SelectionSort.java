@@ -240,12 +240,15 @@ public class SelectionSort extends JFrame {
                 case OuterLoop:
                     if (sortedIndex == array.size()-1) {
                         state = State.Completed;
+                        drawPanel.repaint();
+                        explanationLabel.setText("Sort completed");
                         step();
                         return;
                     }
                     minIndex = sortedIndex + 1;
                     currIndex = minIndex;
                     state = State.InnerLoop;
+                    drawPanel.repaint();
                     return;
                 case InnerLoop:
                     ++currIndex;
@@ -261,6 +264,7 @@ public class SelectionSort extends JFrame {
                     if (array.get(currIndex) < array.get(minIndex)) {
                         minIndex = currIndex;
                     }
+                    drawPanel.repaint();
                     return;
                 case Completed:
                     return;
