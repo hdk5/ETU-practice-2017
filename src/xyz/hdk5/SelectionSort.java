@@ -12,9 +12,7 @@ import java.util.Collections;
 public class SelectionSort extends JFrame {
     private Sorter sorter = null;
     private ArrayList<Integer> array = null;
-    private int sortedIndex = -1;
-    private int minIndex = -1;
-    private int currIndex = -1;
+
     private boolean animation = false;
     //Элементы графического интерфейса
     private JLabel numLabel;
@@ -167,6 +165,7 @@ public class SelectionSort extends JFrame {
         drawPanel.repaint();
     }
 
+
     //Визуализация массива в виде столбчатой диаграммы
     private class DrawArrayPanel extends JPanel {
         @Override
@@ -191,14 +190,11 @@ public class SelectionSort extends JFrame {
                 fy += fm.getAscent() / 2.;
 
                 for (int i = 0; i < array.size(); ++i) {
-//                    if (i < sortedIndex) {
-                    if (i < array.size() / 3) {
+                    if (i <= sorter.sortedIndex) {
                         g2.setColor(Color.cyan);
-//                    } else if (i == currIndex) {
-                    } else if (i == (array.size() * 2) / 3) {
+                    } else if (i == sorter.currIndex) {
                         g2.setColor(Color.pink);
-//                    } else if (i == minIndex) {
-                    } else if (i == array.size() / 2) {
+                    } else if (i == sorter.minIndex) {
                         g2.setColor(Color.red);
                     } else {
                         g2.setColor(Color.blue);
@@ -219,63 +215,57 @@ public class SelectionSort extends JFrame {
             }
         }
     }
-    //Сортировка
+
+
+    private enum State {
+        OuterLoop, Completed, InnerLoop
+    }
+
     private class Sorter {
 
-        ArrayList<Integer> array;
-        private SortingThread t = null;
-        private Object stepLock = new Object();
+        private ArrayList<Integer> array;
+
+        private int sortedIndex = -1;
+        private int minIndex = -1;
+        private int currIndex = -1;
+
+        private State state = State.OuterLoop;
 
         public Sorter(ArrayList<Integer> arrayReference) {
             array = arrayReference;
         }
 
-        protected void finalize() throws Throwable {
-            try {
-                if (t != null) {
-                    t.stop();
-                }
-            } finally {
-                super.finalize();
-            }
-        }
-
         void step() {
-            if (t == null || t.getState() != Thread.State.RUNNABLE) {
-                t = new SortingThread();
-                t.start();
-            }
-            synchronized (stepLock) {
-                stepLock.notifyAll();
+            switch (state) {
+                case OuterLoop:
+                    if (sortedIndex == array.size()-1) {
+                        state = State.Completed;
+                        step();
+                        return;
+                    }
+                    minIndex = sortedIndex + 1;
+                    currIndex = minIndex;
+                    state = State.InnerLoop;
+                    return;
+                case InnerLoop:
+                    ++currIndex;
+                    if (currIndex == array.size()) {
+                        int tmp = array.get(sortedIndex + 1);
+                        array.set(sortedIndex + 1, array.get(minIndex));
+                        array.set(minIndex, tmp);
+                        state = State.OuterLoop;
+                        ++sortedIndex;
+                        step();
+                        return;
+                    }
+                    if (array.get(currIndex) < array.get(minIndex)) {
+                        minIndex = currIndex;
+                    }
+                    return;
+                case Completed:
+                    return;
             }
         }
 
-    
-        private class SortingThread extends Thread {
-            @Override
-            public void run() {
-                synchronized (stepLock) {
-                    explanationLabel.setText("Sorting");
-                    for (int min = 0; min < array.size() - 1; min++) {
-                        int least = min;
-                        for (int j = min + 1; j < array.size(); j++) {
-                            if (array.get(j) < array.get(least)) {
-                                least = j;
-                            }
-                        }
-                        int tmp = array.get(min);
-                        array.set(min, array.get(least));
-                        array.set(least, tmp);
-                        try {
-                            drawPanel.repaint();
-                            stepLock.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    explanationLabel.setText("Sort completed");
-                }
-            }
-        }
     }
 }
