@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 
@@ -59,9 +60,13 @@ public class SelectionSort extends JFrame {
             } catch (ParseException e1) {
                 e1.printStackTrace();
             }
-            randomize((Integer) numOfElements.getValue());
-            sorter = new Sorter(array);
-            drawPanel.repaint();
+
+            array = new ArrayList<Integer>();
+            for (int i = 1; i <= (Integer) numOfElements.getValue(); i++) {
+                array.add(i);
+            }
+            Collections.shuffle(array);
+            clearArray();
         });
         c.gridx = 4;
         c.gridy = 0;
@@ -83,10 +88,28 @@ public class SelectionSort extends JFrame {
         //Кнопка ввода кастомного массива
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                    "Can't parse input string",
-                    "Parse error",
-                    JOptionPane.ERROR_MESSAGE);
+            try {
+                ArrayList<String> strList = new ArrayList<String>(
+                        Arrays.asList(manualInputField.getText().split(" "))
+                );
+                ArrayList<Integer> newArray = new ArrayList<Integer>();
+                for (String str : strList) {
+                    Integer value = Integer.parseInt(str.trim());
+                    if (value < 1) {
+                        throw new Throwable() {
+                        };
+                    }
+                    newArray.add(value);
+                }
+                array = newArray;
+                clearArray();
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Can't parse input string",
+                        "Parse error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         c.gridx = 4;
         c.gridy = 1;
@@ -95,7 +118,7 @@ public class SelectionSort extends JFrame {
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
         stepButton.addActionListener(e -> {
-//            Collections.sort(array);
+
             if (sorter != null) {
                 sorter.step();
             }
@@ -125,7 +148,9 @@ public class SelectionSort extends JFrame {
         explanationLabel = new JLabel("Define array to begin.");
         c.gridx = 2;
         c.gridy = 3;
+        c.gridwidth = 6;
         add(explanationLabel, c);
+        c.gridwidth = 1;
 
         pack();
         setVisible(true);
@@ -136,13 +161,10 @@ public class SelectionSort extends JFrame {
         SelectionSort mainWindow = new SelectionSort();
     }
 
-    //Функция перемешивания элементов
-    private void randomize(int size) {
-        array = new ArrayList<Integer>();
-        for (int i = 1; i <= size; i++) {
-            array.add(i);
-        }
-        Collections.shuffle(array);
+    private void clearArray() {
+        explanationLabel.setText("CLick \"Step\" or enable animation to begin visualisation.");
+        sorter = new Sorter(array);
+        drawPanel.repaint();
     }
 
     //Визуализация массива в виде столбчатой диаграммы
@@ -156,7 +178,9 @@ public class SelectionSort extends JFrame {
             g2.setColor(Color.white);
             g2.fillRect(0, 0, getWidth(), getHeight());
 
+
             if (array != null) {
+                Integer arrayMax = Collections.max(array);
                 double barWidth = getWidth() / (double) array.size();
                 double barMaxHeight = getHeight();
                 if (array.size() <= 50) {
@@ -179,7 +203,7 @@ public class SelectionSort extends JFrame {
                     } else {
                         g2.setColor(Color.blue);
                     }
-                    double barHeight = (barMaxHeight * (array.get(i) / (double) array.size()));
+                    double barHeight = (barMaxHeight * (array.get(i) / (double) arrayMax));
                     Shape r = new Rectangle2D.Double(i * barWidth, barMaxHeight - barHeight, barWidth, barHeight);
                     g2.fill(r);
                     g2.draw(r);
@@ -206,6 +230,16 @@ public class SelectionSort extends JFrame {
             array = arrayReference;
         }
 
+        protected void finalize() throws Throwable {
+            try {
+                if (t != null) {
+                    t.stop();
+                }
+            } finally {
+                super.finalize();
+            }
+        }
+
         void step() {
             if (t == null || t.getState() != Thread.State.RUNNABLE) {
                 t = new SortingThread();
@@ -215,6 +249,7 @@ public class SelectionSort extends JFrame {
                 stepLock.notifyAll();
             }
         }
+
         //Сортировка
         private class SortingThread extends Thread {
             @Override
@@ -241,8 +276,6 @@ public class SelectionSort extends JFrame {
                     explanationLabel.setText("Sort completed");
                 }
             }
-
         }
     }
-
 }
