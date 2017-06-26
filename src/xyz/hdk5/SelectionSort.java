@@ -137,7 +137,8 @@ public class SelectionSort extends JFrame {
         //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
         animationButton.addActionListener(e -> {
-
+            animation = !animation;
+            sorter.animate();
         });
         c.gridx = 1;
         c.gridy = 3;
@@ -161,6 +162,7 @@ public class SelectionSort extends JFrame {
 
     private void clearArray() {
         explanationLabel.setText("CLick \"Step\" or enable animation to begin visualisation.");
+        animation = false;
         sorter = new Sorter(array);
         drawPanel.repaint();
     }
@@ -235,10 +237,27 @@ public class SelectionSort extends JFrame {
             array = arrayReference;
         }
 
+        void animate() {
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    while (animation) {
+                        try {
+                            Thread.sleep(250);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        step();
+                    }
+                }
+            };
+            t.start();
+        }
+
         void step() {
             switch (state) {
                 case OuterLoop:
-                    if (sortedIndex == array.size()-1) {
+                    if (sortedIndex == array.size() - 1) {
                         state = State.Completed;
                         drawPanel.repaint();
                         explanationLabel.setText("Sort completed");
