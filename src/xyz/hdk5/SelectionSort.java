@@ -78,6 +78,7 @@ public class SelectionSort extends JFrame {
         c.gridwidth = 2;
         add(manualInputField, c);
         c.gridwidth = 1;
+        
         //Кнопка ввода кастомного массива
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
@@ -154,7 +155,14 @@ public class SelectionSort extends JFrame {
 
             if (array != null) {
                 double barWidth = getWidth() / (double) array.size();
-                double barMaxHeight = getHeight() - 30;
+                double barMaxHeight = getHeight();
+                if (array.size() <= 50) {
+                    barMaxHeight -= 30;
+                }
+                FontMetrics fm = g2.getFontMetrics();
+                float fy = (float) ((getHeight() + barMaxHeight) / 2.);
+                fy += fm.getAscent() / 2.;
+
                 for (int i = 0; i < array.size(); ++i) {
 //                    if (i < sortedIndex) {
                     if (i < array.size() / 3) {
@@ -173,14 +181,13 @@ public class SelectionSort extends JFrame {
                     g2.fill(r);
                     g2.draw(r);
 
-                    g2.setColor(Color.black);
-                    String iStr = array.get(i).toString();
-                    FontMetrics fm = g2.getFontMetrics();
-                    float fx = (float) (((i + 1) * barWidth + i * barWidth) / 2.);
-                    float fy = (float) ((getHeight() + barMaxHeight) / 2.);
-                    fx -= fm.stringWidth(iStr) / 2.;
-                    fy += fm.getAscent() / 2.;
-                    g2.drawString(iStr, fx, fy);
+                    if (array.size() <= 50) {
+                        g2.setColor(Color.black);
+                        String iStr = array.get(i).toString();
+                        float fx = (float) (((i + 1) * barWidth + i * barWidth) / 2.);
+                        fx -= fm.stringWidth(iStr) / 2.;
+                        g2.drawString(iStr, fx, fy);
+                    }
                 }
             }
         }
