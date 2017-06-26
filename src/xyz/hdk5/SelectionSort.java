@@ -25,6 +25,7 @@ public class SelectionSort extends JFrame {
     private JLabel explanationLabel;
     private JButton manualCommitButton;
     private JTextField manualInputField;
+    private JLabel colorLegend;
 
     public SelectionSort() {
         super("Selection Sort Algorithm Visualisation");
@@ -33,6 +34,11 @@ public class SelectionSort extends JFrame {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(3, 3, 3, 3);
+
+        colorLegend = new JLabel("Cyan - sorted, pink - current, red - current minimal");
+        c.gridx = 5;
+        c.gridy = 0;
+        add(colorLegend, c);
 
         //Строка кол-ва элементов
         numLabel = new JLabel("Number of elements: ");
