@@ -5,27 +5,26 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 
 public class SelectionSort extends JFrame {
+    private final Sorter sorter = new Sorter();
     private ArrayList<Integer> array = null;
-    private int sortedIndex = -1;
-    private int minIndex = -1;
-    private int currIndex = -1;
-    private boolean animation = false;
 
     //Элементы графического интерфейса
-    private JLabel numLabel;
-    private JPanel drawPanel;
-    private JLabel manualInputLabel;
-    private JSpinner numOfElements;
-    private JButton randButton;
-    private JButton stepButton;
-    private JButton animationButton;
-    private JLabel explanationLabel;
-    private JButton manualCommitButton;
-    private JTextField manualInputField;
+    private final JLabel numLabel;
+    private final JPanel drawPanel;
+    private final JLabel manualInputLabel;
+    private final JSpinner numOfElements;
+    private final JButton randButton;
+    private final JButton stepButton;
+    private final JButton animationButton;
+    private final JLabel explanationLabel;
+    private final JButton manualCommitButton;
+    private final JTextField manualInputField;
+    private final JLabel colorLegend;
 
     public SelectionSort() {
         super("Selection Sort Algorithm Visualisation");
@@ -34,6 +33,11 @@ public class SelectionSort extends JFrame {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(3, 3, 3, 3);
+
+        colorLegend = new JLabel("Cyan - sorted, pink - current, red - current minimal");
+        c.gridx = 5;
+        c.gridy = 0;
+        add(colorLegend, c);
 
         //Строка кол-ва элементов
         numLabel = new JLabel("Number of elements: ");
@@ -59,8 +63,13 @@ public class SelectionSort extends JFrame {
             } catch (ParseException e1) {
                 e1.printStackTrace();
             }
-            randomize((Integer) numOfElements.getValue());
-            drawPanel.repaint();
+
+            array = new ArrayList<>();
+            for (int i = 1; i <= (Integer) numOfElements.getValue(); i++) {
+                array.add(i);
+            }
+            Collections.shuffle(array);
+            sorter.reset();
         });
         c.gridx = 4;
         c.gridy = 0;
@@ -78,13 +87,32 @@ public class SelectionSort extends JFrame {
         c.gridwidth = 2;
         add(manualInputField, c);
         c.gridwidth = 1;
+
         //Кнопка ввода кастомного массива
         manualCommitButton = new JButton("Commit");
         manualCommitButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                    "Can't parse input string",
-                    "Parse error",
-                    JOptionPane.ERROR_MESSAGE);
+            try {
+                ArrayList<String> strList = new ArrayList<>(
+                        Arrays.asList(manualInputField.getText().split(" "))
+                );
+                ArrayList<Integer> newArray = new ArrayList<>();
+                for (String str : strList) {
+                    Integer value = Integer.parseInt(str.trim());
+                    if (value < 1) {
+                        throw new Throwable() {
+                        };
+                    }
+                    newArray.add(value);
+                }
+                array = newArray;
+                sorter.reset();
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Can't parse input string",
+                        "Parse error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         c.gridx = 4;
         c.gridy = 1;
@@ -92,10 +120,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
-        stepButton.addActionListener(e -> {
-            Collections.sort(array);
-            drawPanel.repaint();
-        });
+        stepButton.addActionListener(e -> sorter.step());
         c.gridx = 0;
         c.gridy = 3;
         add(stepButton, c);
@@ -111,9 +136,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
-        animationButton.addActionListener(e -> {
-
-        });
+        animationButton.addActionListener(e -> sorter.switchAnimation());
         c.gridx = 1;
         c.gridy = 3;
         add(animationButton, c);
@@ -121,7 +144,9 @@ public class SelectionSort extends JFrame {
         explanationLabel = new JLabel("Define array to begin.");
         c.gridx = 2;
         c.gridy = 3;
+        c.gridwidth = 6;
         add(explanationLabel, c);
+        c.gridwidth = 1;
 
         pack();
         setVisible(true);
@@ -132,14 +157,6 @@ public class SelectionSort extends JFrame {
         SelectionSort mainWindow = new SelectionSort();
     }
 
-    //Функция перемешивания элементов
-    private void randomize(int size) {
-        array = new ArrayList<Integer>();
-        for (int i = 1; i <= size; i++) {
-            array.add(i);
-        }
-        Collections.shuffle(array);
-    }
 
     //Визуализация массива в виде столбчатой диаграммы
     private class DrawArrayPanel extends JPanel {
@@ -152,38 +169,127 @@ public class SelectionSort extends JFrame {
             g2.setColor(Color.white);
             g2.fillRect(0, 0, getWidth(), getHeight());
 
+
             if (array != null) {
+                Integer arrayMax = Collections.max(array);
                 double barWidth = getWidth() / (double) array.size();
-                double barMaxHeight = getHeight() - 30;
+                double barMaxHeight = getHeight();
+                if (array.size() <= 50) {
+                    barMaxHeight -= 30;
+                }
+                FontMetrics fm = g2.getFontMetrics();
+                float fy = (float) ((getHeight() + barMaxHeight) / 2.);
+                fy += fm.getAscent() / 2.;
+
                 for (int i = 0; i < array.size(); ++i) {
-//                    if (i < sortedIndex) {
-                    if (i < array.size() / 3) {
+                    if (i <= sorter.sortedIndex) {
                         g2.setColor(Color.cyan);
-//                    } else if (i == currIndex) {
-                    } else if (i == (array.size() * 2) / 3) {
+                    } else if (i == sorter.currIndex) {
                         g2.setColor(Color.pink);
-//                    } else if (i == minIndex) {
-                    } else if (i == array.size() / 2) {
+                    } else if (i == sorter.minIndex) {
                         g2.setColor(Color.red);
                     } else {
                         g2.setColor(Color.blue);
                     }
-                    double barHeight = (barMaxHeight * (array.get(i) / (double) array.size()));
+                    double barHeight = (barMaxHeight * (array.get(i) / (double) arrayMax));
                     Shape r = new Rectangle2D.Double(i * barWidth, barMaxHeight - barHeight, barWidth, barHeight);
                     g2.fill(r);
                     g2.draw(r);
 
-                    g2.setColor(Color.black);
-                    String iStr = array.get(i).toString();
-                    FontMetrics fm = g2.getFontMetrics();
-                    float fx = (float) (((i + 1) * barWidth + i * barWidth) / 2.);
-                    float fy = (float) ((getHeight() + barMaxHeight) / 2.);
-                    fx -= fm.stringWidth(iStr) / 2.;
-                    fy += fm.getAscent() / 2.;
-                    g2.drawString(iStr, fx, fy);
+                    if (array.size() <= 50) {
+                        g2.setColor(Color.black);
+                        String iStr = array.get(i).toString();
+                        float fx = (float) (((i + 1) * barWidth + i * barWidth) / 2.);
+                        fx -= fm.stringWidth(iStr) / 2.;
+                        g2.drawString(iStr, fx, fy);
+                    }
                 }
             }
         }
     }
 
+
+    private enum State {
+        OuterLoop, Completed, InnerLoop
+    }
+
+    private class Sorter {
+
+        private int sortedIndex = -1;
+        private int minIndex = -1;
+        private int currIndex = -1;
+        private boolean animation = false;
+
+
+        private State state = State.OuterLoop;
+
+        void reset() {
+            explanationLabel.setText("Click \"Step\" or enable animation to begin visualisation.");
+            animation = false;
+            animationThread = null;
+            state = State.OuterLoop;
+            sortedIndex = -1;
+            minIndex = -1;
+            currIndex = -1;
+            drawPanel.repaint();
+        }
+
+        private Thread animationThread = null;
+
+        public void switchAnimation() {
+            animation = !animation;
+            if (animation && (animationThread == null || animationThread.getState() == Thread.State.TERMINATED)) {
+                animationThread = new Thread(() -> {
+                    while (animation) {
+                        step();
+                        try {
+                            Thread.sleep(250);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                animationThread.start();
+            }
+        }
+
+        void step() {
+            if (array == null) {
+                return;
+            }
+            switch (state) {
+                case OuterLoop:
+                    if (sortedIndex == array.size() - 1) {
+                        state = State.Completed;
+                        drawPanel.repaint();
+                        explanationLabel.setText("Sort completed");
+                        step();
+                        return;
+                    }
+                    minIndex = sortedIndex + 1;
+                    currIndex = minIndex;
+                    state = State.InnerLoop;
+                    drawPanel.repaint();
+                    return;
+                case InnerLoop:
+                    ++currIndex;
+                    if (currIndex == array.size()) {
+                        int tmp = array.get(sortedIndex + 1);
+                        array.set(sortedIndex + 1, array.get(minIndex));
+                        array.set(minIndex, tmp);
+                        state = State.OuterLoop;
+                        ++sortedIndex;
+                        step();
+                        return;
+                    }
+                    if (array.get(currIndex) < array.get(minIndex)) {
+                        minIndex = currIndex;
+                    }
+                    drawPanel.repaint();
+                    return;
+                case Completed:
+                    return;
+            }
+        }
+    }
 }
