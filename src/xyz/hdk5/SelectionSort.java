@@ -10,10 +10,9 @@ import java.util.Collections;
 
 
 public class SelectionSort extends JFrame {
-    private Sorter sorter = null;
+    private final Sorter sorter = new Sorter();
     private ArrayList<Integer> array = null;
 
-    private boolean animation = false;
     //Элементы графического интерфейса
     private final JLabel numLabel;
     private final JPanel drawPanel;
@@ -70,7 +69,7 @@ public class SelectionSort extends JFrame {
                 array.add(i);
             }
             Collections.shuffle(array);
-            clearArray();
+            sorter.reset();
         });
         c.gridx = 4;
         c.gridy = 0;
@@ -106,7 +105,7 @@ public class SelectionSort extends JFrame {
                     newArray.add(value);
                 }
                 array = newArray;
-                clearArray();
+                sorter.reset();
             } catch (Throwable ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
@@ -121,12 +120,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
-        stepButton.addActionListener(e -> {
-
-            if (sorter != null) {
-                sorter.step();
-            }
-        });
+        stepButton.addActionListener(e -> sorter.step());
         c.gridx = 0;
         c.gridy = 3;
         add(stepButton, c);
@@ -142,10 +136,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
-        animationButton.addActionListener(e -> {
-            animation = !animation;
-            sorter.animate();
-        });
+        animationButton.addActionListener(e -> sorter.switchAnimation());
         c.gridx = 1;
         c.gridy = 3;
         add(animationButton, c);
@@ -164,13 +155,6 @@ public class SelectionSort extends JFrame {
 
     public static void main(String[] args) {
         SelectionSort mainWindow = new SelectionSort();
-    }
-
-    private void clearArray() {
-        explanationLabel.setText("CLick \"Step\" or enable animation to begin visualisation.");
-        animation = false;
-        sorter = new Sorter(array);
-        drawPanel.repaint();
     }
 
 
@@ -231,32 +215,48 @@ public class SelectionSort extends JFrame {
 
     private class Sorter {
 
-        private ArrayList<Integer> array;
-
         private int sortedIndex = -1;
         private int minIndex = -1;
         private int currIndex = -1;
+        private boolean animation = false;
+
 
         private State state = State.OuterLoop;
 
-        public Sorter(ArrayList<Integer> arrayReference) {
-            array = arrayReference;
+        void reset() {
+            explanationLabel.setText("Click \"Step\" or enable animation to begin visualisation.");
+            animation = false;
+            animationThread = null;
+            state = State.OuterLoop;
+            sortedIndex = -1;
+            minIndex = -1;
+            currIndex = -1;
+            drawPanel.repaint();
         }
 
-        void animate() {
-            new Thread(() -> {
-                while (animation) {
-                    try {
-                        Thread.sleep(250);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+        private Thread animationThread = null;
+
+        public void switchAnimation() {
+            animation = !animation;
+            if (animation && (animationThread == null || animationThread.getState() == Thread.State.TERMINATED)) {
+                animationThread = new Thread(() -> {
+                    while (animation) {
+                        step();
+                        try {
+                            Thread.sleep(250);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    step();
-                }
-            }).start();
+                });
+                animationThread.start();
+            }
         }
 
         void step() {
+            if (array == null) {
+                return;
+            }
             switch (state) {
                 case OuterLoop:
                     if (sortedIndex == array.size() - 1) {
