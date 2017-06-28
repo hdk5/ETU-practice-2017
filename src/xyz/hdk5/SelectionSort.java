@@ -21,6 +21,8 @@ public class SelectionSort extends JFrame {
     private final JButton randButton;
     private final JButton stepButton;
     private final JButton animationButton;
+    private final JLabel animationSpeedLabel;
+    private final JSpinner animationSpeedTextField;
     private final JLabel explanationLabel;
     private final JButton manualCommitButton;
     private final JTextField manualInputField;
@@ -121,10 +123,24 @@ public class SelectionSort extends JFrame {
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
         stepButton.addActionListener(e -> sorter.step());
+        
         c.gridx = 0;
         c.gridy = 3;
         add(stepButton, c);
-
+        
+        //Speed
+        animationSpeedLabel = new JLabel("Animation speed: ");
+        c.gridx = 0;
+        c.gridy = 4;
+        add(animationSpeedLabel, c);
+                 
+        animationSpeedTextField = new JSpinner(
+                new SpinnerNumberModel(250, 10, 1000, 10)
+        );    
+        c.gridx = 1;
+        c.gridy = 4;
+        add(animationSpeedTextField,c);
+        
         drawPanel = new DrawArrayPanel();
         drawPanel.setPreferredSize(new Dimension(800, 300));
         drawPanel.setVisible(true);
@@ -244,7 +260,8 @@ public class SelectionSort extends JFrame {
                         step();
                         try {
 //                            Thread.sleep(array.size() < 250 ? 250 : 2);
-                            Thread.sleep(250);
+//                            Thread.sleep(250);
+                            Thread.sleep((Integer) animationSpeedTextField.getValue());  
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
