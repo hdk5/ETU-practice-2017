@@ -10,7 +10,7 @@ import java.util.Collections;
 
 
 public class SelectionSort extends JFrame {
-    private final Sorter sorter = new Sorter();
+    //    private final Sorter sorter = new Sorter();
     private ArrayList<Integer> array = null;
 
     //Элементы графического интерфейса
@@ -21,6 +21,8 @@ public class SelectionSort extends JFrame {
     private final JButton randButton;
     private final JButton stepButton;
     private final JButton animationButton;
+    private final JLabel animationSpeedLabel;
+    private final JSpinner animationSpeedTextField;
     private final JLabel explanationLabel;
     private final JButton manualCommitButton;
     private final JTextField manualInputField;
@@ -69,7 +71,7 @@ public class SelectionSort extends JFrame {
                 array.add(i);
             }
             Collections.shuffle(array);
-            sorter.reset();
+            reset();
         });
         c.gridx = 4;
         c.gridy = 0;
@@ -105,7 +107,7 @@ public class SelectionSort extends JFrame {
                     newArray.add(value);
                 }
                 array = newArray;
-                sorter.reset();
+                reset();
             } catch (Throwable ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
@@ -120,10 +122,24 @@ public class SelectionSort extends JFrame {
 
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
-        stepButton.addActionListener(e -> sorter.step());
+        stepButton.addActionListener(e -> step());
+
         c.gridx = 0;
         c.gridy = 3;
         add(stepButton, c);
+
+        //Speed
+        animationSpeedLabel = new JLabel("Animation speed: ");
+        c.gridx = 0;
+        c.gridy = 4;
+        add(animationSpeedLabel, c);
+
+        animationSpeedTextField = new JSpinner(
+                new SpinnerNumberModel(250, 10, 1000, 10)
+        );
+        c.gridx = 1;
+        c.gridy = 4;
+        add(animationSpeedTextField, c);
 
         drawPanel = new DrawArrayPanel();
         drawPanel.setPreferredSize(new Dimension(800, 300));
@@ -136,7 +152,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
-        animationButton.addActionListener(e -> sorter.switchAnimation());
+        animationButton.addActionListener(e -> switchAnimation());
         c.gridx = 1;
         c.gridy = 3;
         add(animationButton, c);
@@ -182,11 +198,11 @@ public class SelectionSort extends JFrame {
                 fy += fm.getAscent() / 2.;
 
                 for (int i = 0; i < array.size(); ++i) {
-                    if (i <= sorter.sortedIndex) {
+                    if (i <= sortedIndex) {
                         g2.setColor(Color.cyan);
-                    } else if (i == sorter.currIndex) {
+                    } else if (i == currIndex) {
                         g2.setColor(Color.pink);
-                    } else if (i == sorter.minIndex) {
+                    } else if (i == minIndex) {
                         g2.setColor(Color.red);
                     } else {
                         g2.setColor(Color.blue);
@@ -213,83 +229,89 @@ public class SelectionSort extends JFrame {
         OuterLoop, Completed, InnerLoop
     }
 
-    private class Sorter {
+//    private class Sorter {
 
-        private int sortedIndex = -1;
-        private int minIndex = -1;
-        private int currIndex = -1;
-        private boolean animation = false;
+    private int sortedIndex = -1;
+    private int minIndex = -1;
+    private int currIndex = -1;
+    private boolean animation = false;
 
 
-        private State state = State.OuterLoop;
+    private State state = State.OuterLoop;
 
-        void reset() {
-            explanationLabel.setText("Click \"Step\" or enable animation to begin visualisation.");
-            animation = false;
-            animationThread = null;
-            state = State.OuterLoop;
-            sortedIndex = -1;
-            minIndex = -1;
-            currIndex = -1;
-            drawPanel.repaint();
-        }
+    private void reset() {
+        explanationLabel.setText("Click \"Step\" or enable animation to begin visualisation.");
+        animation = false;
+        animationThread = null;
+        state = State.OuterLoop;
+        sortedIndex = -1;
+        minIndex = -1;
+        currIndex = -1;
+        drawPanel.repaint();
+    }
 
-        private Thread animationThread = null;
+    private Thread animationThread = null;
 
-        public void switchAnimation() {
-            animation = !animation;
-            if (animation && (animationThread == null || animationThread.getState() == Thread.State.TERMINATED)) {
-                animationThread = new Thread(() -> {
-                    while (animation) {
-                        step();
-                        try {
-                            Thread.sleep(250);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+    private void switchAnimation() {
+        animation = !animation;
+        if (animation && (animationThread == null || animationThread.getState() == Thread.State.TERMINATED)) {
+            animationThread = new Thread(() -> {
+                while (animation) {
+                    step();
+                    try {
+//                            Thread.sleep(array.size() < 250 ? 250 : 2);
+//                            Thread.sleep(250);
+                        Thread.sleep((Integer) animationSpeedTextField.getValue());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                });
-                animationThread.start();
-            }
-        }
-
-        void step() {
-            if (array == null) {
-                return;
-            }
-            switch (state) {
-                case OuterLoop:
-                    if (sortedIndex == array.size() - 1) {
-                        state = State.Completed;
-                        drawPanel.repaint();
-                        explanationLabel.setText("Sort completed");
-                        step();
-                        return;
-                    }
-                    minIndex = sortedIndex + 1;
-                    currIndex = minIndex;
-                    state = State.InnerLoop;
-                    drawPanel.repaint();
-                    return;
-                case InnerLoop:
-                    ++currIndex;
-                    if (currIndex == array.size()) {
-                        int tmp = array.get(sortedIndex + 1);
-                        array.set(sortedIndex + 1, array.get(minIndex));
-                        array.set(minIndex, tmp);
-                        state = State.OuterLoop;
-                        ++sortedIndex;
-                        step();
-                        return;
-                    }
-                    if (array.get(currIndex) < array.get(minIndex)) {
-                        minIndex = currIndex;
-                    }
-                    drawPanel.repaint();
-                    return;
-                case Completed:
-                    return;
-            }
+                }
+            });
+            animationThread.start();
         }
     }
+
+    private void step() {
+        if (array == null) {
+            return;
+        }
+        switch (state) {
+            case OuterLoop:
+                if (sortedIndex == array.size() - 1) {
+                    state = State.Completed;
+                    drawPanel.repaint();
+                    explanationLabel.setText("Sort completed");
+//                        step();
+                    return;
+                }
+                minIndex = sortedIndex + 1;
+                currIndex = minIndex;
+                state = State.InnerLoop;
+                explanationLabel.setText(String.format("Began looking for element for position %d", minIndex));
+                drawPanel.repaint();
+                return;
+            case InnerLoop:
+                ++currIndex;
+                if (currIndex == array.size()) {
+                    explanationLabel.setText(String.format("Looking for minimal element completed, swapping %d and %d", minIndex, sortedIndex + 1));
+                    int tmp = array.get(sortedIndex + 1);
+                    array.set(sortedIndex + 1, array.get(minIndex));
+                    array.set(minIndex, tmp);
+                    state = State.OuterLoop;
+                    ++sortedIndex;
+//                        step();
+                    currIndex = minIndex = -1;
+                } else if (array.get(currIndex) < array.get(minIndex)) {
+                    minIndex = currIndex;
+                    explanationLabel.setText(String.format("Found new minimal element on position %d", minIndex));
+                } else {
+                    explanationLabel.setText(String.format("Checked position %d, minimal element is still on position %d", currIndex, minIndex));
+                }
+                drawPanel.repaint();
+                return;
+            case Completed:
+                return;
+        }
+    }
+//    }
 }
