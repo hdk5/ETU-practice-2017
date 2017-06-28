@@ -287,11 +287,13 @@ public class SelectionSort extends JFrame {
                     minIndex = sortedIndex + 1;
                     currIndex = minIndex;
                     state = State.InnerLoop;
+                    explanationLabel.setText(String.format("Began looking for element for position %d", minIndex));
                     drawPanel.repaint();
                     return;
                 case InnerLoop:
                     ++currIndex;
                     if (currIndex == array.size()) {
+                        explanationLabel.setText(String.format("Looking for minimal element completed, swapping %d and %d", minIndex, sortedIndex + 1));
                         int tmp = array.get(sortedIndex + 1);
                         array.set(sortedIndex + 1, array.get(minIndex));
                         array.set(minIndex, tmp);
@@ -301,6 +303,9 @@ public class SelectionSort extends JFrame {
                         currIndex = minIndex = -1;
                     } else if (array.get(currIndex) < array.get(minIndex)) {
                         minIndex = currIndex;
+                        explanationLabel.setText(String.format("Found new minimal element on position %d", minIndex));
+                    } else {
+                        explanationLabel.setText(String.format("Checked position %d, minimal element is still on position %d", currIndex, minIndex));
                     }
                     drawPanel.repaint();
                     return;
