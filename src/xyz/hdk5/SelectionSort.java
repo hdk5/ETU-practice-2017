@@ -243,6 +243,7 @@ public class SelectionSort extends JFrame {
                     while (animation) {
                         step();
                         try {
+//                            Thread.sleep(array.size() < 250 ? 250 : 2);
                             Thread.sleep(250);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -263,7 +264,7 @@ public class SelectionSort extends JFrame {
                         state = State.Completed;
                         drawPanel.repaint();
                         explanationLabel.setText("Sort completed");
-                        step();
+//                        step();
                         return;
                     }
                     minIndex = sortedIndex + 1;
@@ -279,10 +280,9 @@ public class SelectionSort extends JFrame {
                         array.set(minIndex, tmp);
                         state = State.OuterLoop;
                         ++sortedIndex;
-                        step();
-                        return;
-                    }
-                    if (array.get(currIndex) < array.get(minIndex)) {
+//                        step();
+                        currIndex = minIndex = -1;
+                    } else if (array.get(currIndex) < array.get(minIndex)) {
                         minIndex = currIndex;
                     }
                     drawPanel.repaint();
