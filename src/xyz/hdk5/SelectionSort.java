@@ -10,7 +10,7 @@ import java.util.Collections;
 
 
 public class SelectionSort extends JFrame {
-    private final Sorter sorter = new Sorter();
+//    private final Sorter sorter = new Sorter();
     private ArrayList<Integer> array = null;
 
     //Элементы графического интерфейса
@@ -71,7 +71,7 @@ public class SelectionSort extends JFrame {
                 array.add(i);
             }
             Collections.shuffle(array);
-            sorter.reset();
+            reset();
         });
         c.gridx = 4;
         c.gridy = 0;
@@ -107,7 +107,7 @@ public class SelectionSort extends JFrame {
                     newArray.add(value);
                 }
                 array = newArray;
-                sorter.reset();
+                reset();
             } catch (Throwable ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this,
@@ -122,7 +122,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка выполнения шага сортировки
         stepButton = new JButton("Step");
-        stepButton.addActionListener(e -> sorter.step());
+        stepButton.addActionListener(e -> step());
         
         c.gridx = 0;
         c.gridy = 3;
@@ -152,7 +152,7 @@ public class SelectionSort extends JFrame {
 
         //Кнопка отключения показа анимации
         animationButton = new JButton("Start/stop animation");
-        animationButton.addActionListener(e -> sorter.switchAnimation());
+        animationButton.addActionListener(e -> switchAnimation());
         c.gridx = 1;
         c.gridy = 3;
         add(animationButton, c);
@@ -198,11 +198,11 @@ public class SelectionSort extends JFrame {
                 fy += fm.getAscent() / 2.;
 
                 for (int i = 0; i < array.size(); ++i) {
-                    if (i <= sorter.sortedIndex) {
+                    if (i <= sortedIndex) {
                         g2.setColor(Color.cyan);
-                    } else if (i == sorter.currIndex) {
+                    } else if (i == currIndex) {
                         g2.setColor(Color.pink);
-                    } else if (i == sorter.minIndex) {
+                    } else if (i == minIndex) {
                         g2.setColor(Color.red);
                     } else {
                         g2.setColor(Color.blue);
@@ -229,7 +229,7 @@ public class SelectionSort extends JFrame {
         OuterLoop, Completed, InnerLoop
     }
 
-    private class Sorter {
+//    private class Sorter {
 
         private int sortedIndex = -1;
         private int minIndex = -1;
@@ -239,7 +239,7 @@ public class SelectionSort extends JFrame {
 
         private State state = State.OuterLoop;
 
-        void reset() {
+        private void reset() {
             explanationLabel.setText("Click \"Step\" or enable animation to begin visualisation.");
             animation = false;
             animationThread = null;
@@ -252,7 +252,7 @@ public class SelectionSort extends JFrame {
 
         private Thread animationThread = null;
 
-        public void switchAnimation() {
+        private void switchAnimation() {
             animation = !animation;
             if (animation && (animationThread == null || animationThread.getState() == Thread.State.TERMINATED)) {
                 animationThread = new Thread(() -> {
@@ -271,7 +271,7 @@ public class SelectionSort extends JFrame {
             }
         }
 
-        void step() {
+        private void step() {
             if (array == null) {
                 return;
             }
@@ -308,5 +308,5 @@ public class SelectionSort extends JFrame {
                     return;
             }
         }
-    }
+//    }
 }
